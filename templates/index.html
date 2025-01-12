@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static',filename='style.css')}}">
+    <script src="https://kit.fontawesome.com/81b8b08bb1.js" crossorigin="anonymous"></script>
+</head>
+
+<body class="bg-blue-900">
+    <div class="w-full h-[90vh] flex justify-center items-center">
+    <form action="/" method="post" enctype="multipart/form-data" class="flex flex-col w-70 border-4 border-sky-500 rounded-xl p-[1.5rem] bg-blue-200">
+        {% if inputimagefilename %}
+        <img src= "static/{{inputimagefilename}}" class="w-[30rem] h-auto mb-[1rem]">
+
+        {% endif %}
+        <div class="w-full flex items-center justify-center flex-col">
+            <label for="inputimage" id="imagelabel" class="p-[1.5rem] bg-blue-400 hover:bg-blue-500 rounded-xl text-white">Upload Image  <i class="fa-solid fa-arrow-right"></i></label>
+            <input type="file" name="inputimage" id="inputimage" accept="image/*" value="{{inputimage}}" class="py-[2rem] hidden">
+            <p id="imagename" class="w-50 mt-[0.1 rem]"></p>
+        </div>
+        <div class="flex my-[1rem]">
+        <select name="classtype" id="classtype" class="my-[1rem] bg-transparent" value="{{classtype}}">
+            <option value="CR">CR</option>
+            <option value="CL">CL</option>
+            <option value="CC">CC</option>
+            <option value="FA">FA</option>
+            <option value="Other">Other</option>
+        </select>
+        <datalist id="otheroptions">
+            {% for option in otherclasslist %}
+            <option value="{{option}}">{{option}}</option>
+            {% endfor %}
+        </datalist>
+        <input type="text" value="{{classnum}}" name="classnum" id="classnum" placeholder="Room Number" class="my-[1rem] pl-[0.5rem]">
+        </div>
+        <input type="text" value="{{componentid}}" name="componentid" id="componentid" placeholder="Component ID" class="my-[1rem]">
+        <textarea name="complaint" id="complaint" placeholder="Report Problem" class="my-[1rem] bg-transparent">{{complaint}}</textarea>
+        <div class="w-full flex items-center justify-center">
+            <button type="submit" class="bg-red-600 py-[0.8rem] text-white w-40 rounded-xl">Report!</button>
+        </div>
+    </form>
+</div>
+</body>
+<script>
+    classtypeoption = document.getElementById("classtype");
+    inputclassnum = document.getElementById("classnum");
+    imageinput = document.getElementById("inputimage");
+    dummyimagename = document.getElementById("imagename");
+    imagelabel = document.getElementById("imagelabel");
+    classtypeoption.addEventListener('input', (event) => {
+        if (event.target.value == "Other"){
+            console.log("Other Selected")
+            inputclassnum.setAttribute("list","otheroptions")
+        } 
+    });
+    imageinput.addEventListener('input',(inputimage) => {
+        fileName = inputimage.target.value
+        const extractedFileName = fileName.split('\\').pop(); 
+        dummyimagename.innerHTML = extractedFileName;
+        imagelabel.innerHTML = "Image Selected!"
+        imagelabel.style.backgroundColor = "#32CD32"; 
+    })
+</script>
+</html>
