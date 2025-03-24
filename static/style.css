@@ -1,6 +1,31 @@
-input{
-    background-color: transparent;
+*{
+    text-decoration: none;
+    padding: none;
+    margin: none;
 }
+
+input, select, textarea {
+    background-color: white !important;
+    caret-color: black;
+}
+
 *:focus{
     outline: none;
+}
+th,td{
+    padding: 5rem;
+}
+tr{
+    margin-bottom: 2rem;
+}
+#tophalf,#imagelabel{
+    background-image: linear-gradient(to right,#509A50,#80EF80);
+}
+#reportbtn
+{
+    background-image: linear-gradient(to right,#cb1f13,#b35555);
+}
+#classtype{
+    height: fit-content;
+    border-right: none;
 }

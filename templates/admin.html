@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://kit.fontawesome.com/81b8b08bb1.js" crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+
+<style>
+    body {
+        font-family: 'Libre Franklin', sans-serif;
+        font-weight: 400;
+    }
+</style>
+
+<body class="min-h-screen flex flex-col items-center">
+    <div id='tophalf' class="w-full p-4 h-[15vh] flex justify-center bg-green-500">
+        <div class="flex items-center bg-white rounded-xl p-3 shadow-lg">
+            <div class="border-r border-gray-400 pr-4">
+                <img src="/static/nmims-university-logo.png" class="w-32">
+            </div>
+            <p class="text-lg font-light ml-4 text-center">Mukesh Patel School Of Technology & Engineering</p>
+        </div>
+    </div>
+
+    <div class="w-full flex justify-center mt-6 px-4">
+        <form action="/adminpanel/{{passkey}}" method="post" class="flex flex-wrap items-center justify-center gap-3 bg-[#CCFCCC] p-4 rounded-lg shadow-lg w-full max-w-lg">
+            <input type="text" name="formflag" value="filter" style="display: none;">
+            <select name="classtype" class="p-3 rounded-lg w-full md:w-auto border border-gray-300 text-sm">
+                <option value="">Class Type</option>
+                <option value="CR">CR</option>
+                <option value="CL">CL</option>
+                <option value="CC">CC</option>
+                <option value="FA">FA</option>
+                <option value="Other">Other</option>
+            </select>
+            <select name="phase" class="p-3 rounded-lg w-full md:w-auto border border-gray-300 text-sm">
+                <option value="">Phase</option>
+                <option value="SBMP">SBMP</option>
+                <option value="NEW MPSTME">NEW MPSTME</option>
+                <option value="OLD MPSTME">OLD MPSTME</option>
+            </select>
+            <button type="submit" class="bg-blue-600 text-white px-5 py-3 rounded-lg hover:bg-blue-700 transition-all w-full md:w-auto text-sm">Filter</button>
+        </form>
+    </div>
+
+    {% if filters_applied %}
+    <div class="w-full max-w-6xl mx-auto bg-gray-100 p-4 rounded-lg shadow-md flex flex-wrap gap-3 justify-center items-center mt-4">
+        <p class="text-gray-700 text-sm font-semibold">Active Filters:</p>
+        <div class="flex flex-wrap gap-2">
+            {% for key, value in filters_applied.items() %}
+                <span class="bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-md">{{ key }}: {{ value }}</span>
+            {% endfor %}
+        </div>
+        <form action="/adminpanel/{{passkey}}" method="post">
+            <input type="text" name="formflag" value="removefilters" style="display: none;">
+            <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all text-xs md:text-sm font-semibold shadow-md">
+                Remove All Filters
+            </button>
+        </form>
+    </div>
+    {% endif %}
+
+    <div class="w-full flex justify-center mt-8 px-4">
+        <div class="overflow-x-auto w-full max-w-6xl">
+            <table class="border-collapse bg-white shadow-2xl rounded-xl w-full text-center text-sm md:text-base">
+                <thead class="bg-blue-600 text-white text-xs md:text-sm rounded-xl">
+                    <tr>
+                        <th class="p-3 md:p-4">Class Number</th>
+                        <th class="p-3 md:p-4">Description</th>
+                        <th class="p-3 md:p-4">Component ID</th>
+                        <th class="p-3 md:p-4">Image</th>
+                        <th class="p-3 md:p-4">Phase</th>
+                        <th class="p-3 md:p-4">Completed</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for element in compdata %}
+                        <tr class="border-b hover:bg-blue-50 transition-all">
+                            <td class="p-3 md:p-4 text-gray-800">{{ element['classroom'] }}</td>
+                            <td class="p-3 md:p-4 text-gray-800">{{ element['complaint'] }}</td>
+                            <td class="p-3 md:p-4 text-gray-800">{{ element['componentid'] }}</td>
+                            <td class="p-3 md:p-4">
+                                <a href="{{ element['imageurl'] }}" target="_blank" class="text-blue-500 hover:underline">View</a>
+                            </td>
+                            <td class="p-3 md:p-4 text-gray-800">{{ element['phase'] }}</td>
+                            <td class="p-3 md:p-4">
+                                <form action="/admin/{{passkey}}" method="post">
+                                    <input type="hidden" name="formflag" value="delcomplaint">
+                                    <input type="hidden" name="complaintid" value="{{ element['id'] }}">
+                                    <input type="hidden" name="filename" value="{{ element['filename'] }}">
+                                    <button class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg transition-all text-xs md:text-sm">Mark as Done</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+
+<script>
+    if (window.history.replaceState) {
+        window.history.replaceState(null, null, window.location.href);
+    }
+</script>
+
+</html>
