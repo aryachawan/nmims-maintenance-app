@@ -95,7 +95,10 @@ def complaint(mode):
             componentid=data['componentid']
             phase=data['phase']
             complaint=data['complaint']
-            response = supabase.table('maintenance_app').insert({"classroom":classtype+" "+classnum,"componentid":componentid,"complaint":complaint,"imageurl":fileurl,"phase":phase,"classtype":classtype,"filename":filename}).execute()
+            if(classtype=='Other'):
+                response = supabase.table('maintenance_app').insert({"classroom":classnum,"componentid":componentid,"complaint":complaint,"imageurl":fileurl,"phase":phase,"classtype":classtype,"filename":filename}).execute()
+            else:
+                response = supabase.table('maintenance_app').insert({"classroom":classtype+" "+classnum,"componentid":componentid,"complaint":complaint,"imageurl":fileurl,"phase":phase,"classtype":classtype,"filename":filename}).execute()
             return redirect(url_for("complaint",mode='confirmed'))
         if(request.form['flag']=='cancelupload'):
             data=session.get('complaint_details')
@@ -111,17 +114,17 @@ def admin():
         username = request.form["username"]
         password = request.form["password"]
         if username == admin_id and password == admin_password:
-            passkey=os.environ.get("PASSKEY")
-            return redirect(url_for("adminpanel",flag=passkey))
+            session['admin_logged_in']=True
+            return redirect(url_for("adminpanel"))
         else:
             return "Invalid Login Credentials"
     return render_template("adminlogin.html")
     
 
-@app.route("/adminpanel/<flag>", methods=["POST", "GET"])
-def adminpanel(flag):
-    passkey = os.environ.get("passkey")
-    if flag == passkey:
+@app.route("/adminpanel", methods=["POST", "GET"])
+def adminpanel():
+    admin_status=session.get('admin_logged_in')
+    if(admin_status):
         if request.method == "POST":
             formflag = request.form.get("formflag")
 
@@ -129,8 +132,8 @@ def adminpanel(flag):
                 complaintid = request.form["complaintid"]
                 filename = request.form["filename"]
                 supabase.table("maintenance_app").update({"completed": True}).eq("id", complaintid).execute()
-                supabase.storage.from_("maintenanceappimages").remove([filename])
-                return redirect(url_for("adminpanel", flag=passkey))
+                #supabase.storage.from_("maintenanceappimages").remove([filename])
+                return redirect(url_for("adminpanel"))
 
             elif formflag == "filter":
                 classtype = request.form.get("classtype", "").strip()
@@ -154,17 +157,21 @@ def adminpanel(flag):
                 session.pop("comp_data", None)
                 session.pop("filters_applied", None)
                 session.pop("tempflag", None)
-                return redirect(url_for("adminpanel", flag=passkey))
+                return redirect(url_for("adminpanel"))
 
         compdata = session.get("comp_data") if session.get("tempflag") == 11 else supabase.table("maintenance_app").select("*").eq("completed", False).execute().data
         filters_applied = session.get("filters_applied", {})
 
-        return render_template("admin.html", compdata=compdata, passkey=passkey, filters_applied=filters_applied)
+        return render_template("admin.html", compdata=compdata,filters_applied=filters_applied)
+    else:
+        return "Login Attempt Failed"
     
-    return "Login Attempt Failed"
+@app.route("/logout",methods=['POST','GET'])
+def logout():
+    data=request.form
+    if(data['flag']=='logout'):
+        session.clear()
+        return redirect(url_for("admin"))
 
-
-
-    
 if __name__ == "__main__":
     app.run(debug=True,port=5002)
