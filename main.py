@@ -1,16 +1,20 @@
-from flask import Flask,render_template,redirect,request,session,url_for
+from flask import Flask, render_template, redirect, request, session, url_for, send_file
 import os
 from dotenv import load_dotenv
 from supabase import create_client
+from datetime import datetime
+import pytz
+import pandas as pd
+from io import BytesIO
 
 app = Flask(__name__)
 app.secret_key = "Something"
 load_dotenv()
 url = os.environ.get("SUPABASE_URL")
 key = os.environ.get("SUPABASE_KEY")
-admin_password=os.environ.get("ADMIN_PASSWORD")
-admin_id=os.environ.get("ADMIN_ID")
-supabase = create_client(url,key)
+admin_password = os.environ.get("ADMIN_PASSWORD")
+admin_id = os.environ.get("ADMIN_ID")
+supabase = create_client(url, key)
 other_class_list = my_list = [
     "Automation Lab",
     "Pneumatic Lab",
@@ -44,102 +48,118 @@ other_class_list = my_list = [
     "V.C. Room 2"
 ]
 
-@app.route("/",methods=["POST","GET"])
-def home():
-    return render_template("index.html",otherclasslist=other_class_list)
 
-@app.route("/complaint/<mode>",methods=["POST","GET"])
+@app.route("/", methods=["POST", "GET"])
+def home():
+    return render_template("index.html", otherclasslist=other_class_list)
+
+
+@app.route("/complaint/<mode>", methods=["POST", "GET"])
 def complaint(mode):
+    now = datetime.now()
     filename = ""
     inputimage = ""
     classtype = ""
     componentid = ""
     complaint = ""
     classnum = ""
-    phase=""
-    fileurl=""
+    phase = ""
+    fileurl = ""
     if request.method == "POST":
-        if(request.form["flag"]=='uploadcomplaintrequest'):
+        if (request.form["flag"] == 'uploadcomplaintrequest'):
             inputimage = request.files["inputimage"]
             filename = inputimage.filename
             classtype = request.form["classtype"]
             classnum = request.form["classnum"]
             componentid = request.form["componentid"]
             complaint = request.form["complaint"]
-            phase=request.form['phase']
+            phase = request.form['phase']
+            month = now.strftime('%b').upper()
+            year = now.year
             if inputimage:
                 inputimage.save(f"static/{filename}")
                 filelink = f"static/{filename}"
                 filetype = inputimage.filename.split(".")[-1]
                 print(filetype)
-                resp = supabase.storage.from_("maintenanceappimages").upload(filename,filelink,{"content-type":f"image/{filetype}"})
-                fileurl = supabase.storage.from_("maintenanceappimages").get_public_url(filename)
+                resp = supabase.storage.from_("maintenanceappimages").upload(
+                    filename, filelink, {"content-type": f"image/{filetype}"})
+                fileurl = supabase.storage.from_(
+                    "maintenanceappimages").get_public_url(filename)
                 print(fileurl)
-                #TEMP STORAGE IN SESSION 
-                data={
-                    "fileurl":fileurl,
-                    "filename":filename,
-                    "classtype":classtype,
-                    "classnum":classnum,
-                    "componentid":componentid,
-                    "phase":phase,
-                    "complaint":complaint
+                # TEMP STORAGE IN SESSION
+                data = {
+                    "fileurl": fileurl,
+                    "filename": filename,
+                    "classtype": classtype,
+                    "classnum": classnum,
+                    "componentid": componentid,
+                    "phase": phase,
+                    "complaint": complaint,
+                    "month": month,
+                    "year": year
                 }
-                session['complaint_details']=data
-        if(request.form['flag']=='uploadconfirmed'):
-            data=session.get('complaint_details')
-            fileurl=data['fileurl']
-            filename=data['filename']
-            classtype=data['classtype']
-            classnum=data['classnum']
-            componentid=data['componentid']
-            phase=data['phase']
-            complaint=data['complaint']
-            if(classtype=='Other'):
-                response = supabase.table('maintenance_app').insert({"classroom":classnum,"componentid":componentid,"complaint":complaint,"imageurl":fileurl,"phase":phase,"classtype":classtype,"filename":filename}).execute()
+                session['complaint_details'] = data
+        if (request.form['flag'] == 'uploadconfirmed'):
+            data = session.get('complaint_details')
+            fileurl = data['fileurl']
+            filename = data['filename']
+            classtype = data['classtype']
+            classnum = data['classnum']
+            componentid = data['componentid']
+            phase = data['phase']
+            complaint = data['complaint']
+            month = data['month']
+            year = data['year']
+            if (classtype == 'Other'):
+                response = supabase.table('maintenance_app').insert(
+                    {"classroom": classnum, "componentid": componentid, "complaint": complaint, "imageurl": fileurl, "phase": phase, "classtype": classtype, "filename": filename, "month": month, "year": year}).execute()
             else:
-                response = supabase.table('maintenance_app').insert({"classroom":classtype+" "+classnum,"componentid":componentid,"complaint":complaint,"imageurl":fileurl,"phase":phase,"classtype":classtype,"filename":filename}).execute()
-            return redirect(url_for("complaint",mode='confirmed'))
-        if(request.form['flag']=='cancelupload'):
-            data=session.get('complaint_details')
-            filename=data['filename']
+                response = supabase.table('maintenance_app').insert({"classroom": classtype+" "+classnum, "componentid": componentid,
+                                                                     "complaint": complaint, "imageurl": fileurl, "phase": phase, "classtype": classtype, "filename": filename, "month": month, "year": year}).execute()
+            return redirect(url_for("complaint", mode='confirmed'))
+        if (request.form['flag'] == 'cancelupload'):
+            data = session.get('complaint_details')
+            filename = data['filename']
             supabase.storage.from_("maintenanceappimages").remove([filename])
-            return redirect(url_for("complaint",mode='cancelled'))
+            return redirect(url_for("complaint", mode='cancelled'))
 
-    return render_template("upload.html",complaint=complaint,classnum=classnum,classtype=classtype,componentid=componentid,inputimagefilename=filename,otherclasslist=other_class_list,fileurl=fileurl,phase=phase,mode=mode)
+    return render_template("upload.html", complaint=complaint, classnum=classnum, classtype=classtype, componentid=componentid, inputimagefilename=filename, otherclasslist=other_class_list, fileurl=fileurl, phase=phase, mode=mode)
 
-@app.route("/admin",methods=["POST","GET"]) 
+
+@app.route("/admin", methods=["POST", "GET"])
 def admin():
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
         if username == admin_id and password == admin_password:
-            session['admin_logged_in']=True
+            session['admin_logged_in'] = True
             return redirect(url_for("adminpanel"))
         else:
             return "Invalid Login Credentials"
     return render_template("adminlogin.html")
-    
+
 
 @app.route("/adminpanel", methods=["POST", "GET"])
 def adminpanel():
-    admin_status=session.get('admin_logged_in')
-    if(admin_status):
+    admin_status = session.get('admin_logged_in')
+    if (admin_status):
         if request.method == "POST":
             formflag = request.form.get("formflag")
 
             if formflag == "delcomplaint":
                 complaintid = request.form["complaintid"]
                 filename = request.form["filename"]
-                supabase.table("maintenance_app").update({"completed": True}).eq("id", complaintid).execute()
-                #supabase.storage.from_("maintenanceappimages").remove([filename])
+                supabase.table("maintenance_app").update(
+                    {"completed": True}).eq("id", complaintid).execute()
+                # supabase.storage.from_("maintenanceappimages").remove([filename])
                 return redirect(url_for("adminpanel"))
 
             elif formflag == "filter":
                 classtype = request.form.get("classtype", "").strip()
                 phase = request.form.get("phase", "").strip()
 
-                query = supabase.table("maintenance_app").select("*").eq("completed", False)
+                query = supabase.table("maintenance_app").select(
+                    "*").eq("completed", False)
                 filters_applied = {}
 
                 if classtype:
@@ -150,7 +170,7 @@ def adminpanel():
                     filters_applied["Phase"] = phase
 
                 session["comp_data"] = query.execute().data
-                session["filters_applied"] = filters_applied  # Store applied filters
+                session["filters_applied"] = filters_applied
                 session["tempflag"] = 11
 
             elif formflag == "removefilters":
@@ -159,19 +179,92 @@ def adminpanel():
                 session.pop("tempflag", None)
                 return redirect(url_for("adminpanel"))
 
-        compdata = session.get("comp_data") if session.get("tempflag") == 11 else supabase.table("maintenance_app").select("*").eq("completed", False).execute().data
+        compdata = session.get("comp_data") if session.get("tempflag") == 11 else supabase.table(
+            "maintenance_app").select("*").eq("completed", False).execute().data
         filters_applied = session.get("filters_applied", {})
 
-        return render_template("admin.html", compdata=compdata,filters_applied=filters_applied)
+        return render_template("admin.html", compdata=compdata, filters_applied=filters_applied)
     else:
         return "Login Attempt Failed"
-    
-@app.route("/logout",methods=['POST','GET'])
+
+
+@app.route("/logout", methods=['POST', 'GET'])
 def logout():
-    data=request.form
-    if(data['flag']=='logout'):
+    data = request.form
+    if (data['flag'] == 'logout'):
         session.clear()
         return redirect(url_for("admin"))
 
+
+@app.route("/complaintdetails/<id>", methods=['POST', 'GET'])
+def complaintdetails(id):
+    admin_status = session.get('admin_logged_in')
+    if (admin_status):
+        print('PAGER')
+        if request.method == 'POST':
+            formflag = request.form.get('formflag')
+            print('PAGER2')
+            if (formflag == 'viewcomplaint'):
+                specific_compdata = supabase.table('maintenance_app').select(
+                    '*').eq('id', id).execute().data[0]
+                temp = datetime.fromisoformat(specific_compdata['created_at'])
+                indZone = pytz.timezone('Asia/Kolkata')
+                indDateTime = temp.astimezone(indZone)
+                date = indDateTime.strftime("%d/%m/%y")
+                time = indDateTime.strftime("%H:%M:%S")
+                specific_compdata['date'] = date
+                specific_compdata['time'] = time
+                session['specific_compdata'] = specific_compdata
+                return (redirect(url_for('complaintdetails', id=id)))
+            elif (formflag == 'markasdone'):
+                complaintid = id
+                print('PAPPU')
+                supabase.table('maintenance_app').update(
+                    {'completed': True}).eq('id', complaintid).execute()
+                return (redirect(url_for('adminpanel')))
+    else:
+        return 'Login First'
+
+    return render_template('complaintdetails.html', compdata=session.get('specific_compdata'))
+
+
+@app.route('/report', methods=['POST', 'GET'])
+def report():
+    admin_status = session.get('admin_logged_in')
+    if (admin_status):
+        if request.method == 'POST':
+            formflag = request.form.get('formflag')
+            if (formflag == 'viewreportpage'):
+                return redirect(url_for('report'))
+            if (formflag == 'genreport'):
+                month = request.form.get('month')
+                year = request.form.get('year')
+                rawdata = supabase.table('maintenance_app').select(
+                    "*").eq("month", month).eq("year", year).execute().data
+                session['rawreportdata'] = rawdata
+                return redirect(url_for('report'))
+            if (formflag == 'downloadreport'):
+                rawdata = session.get('rawreportdata')
+                month = rawdata[0]['month']
+                year = rawdata[0]['year']
+                rawdata = supabase.table('maintenance_app').select('classroom,componentid,complaint,created_at,imageurl,phase,completed').eq("month", month).eq("year", year).execute().data
+                df = pd.DataFrame(rawdata)
+                output = BytesIO()
+                with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                    df.to_excel(writer, index=False, sheet_name="Sheet1")
+                output.seek(0)
+                session.pop('rawreportdata')
+                return send_file(
+                    output,
+                    as_attachment=True,
+                    download_name=f'{month}_{year}_REPORT.xlsx',
+                    mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                )
+    else:
+        return 'Please Login'
+
+    return render_template('report.html', reportdata=session.get('rawreportdata'))
+
+
 if __name__ == "__main__":
-    app.run(debug=True,port=5002)
+    app.run(debug=True, port=5002)

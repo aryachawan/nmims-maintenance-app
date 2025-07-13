@@ -11,6 +11,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@100;200;300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='logo.jpg') }}">
 </head>
 <style>
     body {
@@ -31,60 +32,15 @@
         </div>
 
         {% if mode=='upload' %}
-            <div class="flex flex-1 justify-center items-center p-6">
-                {% if classtype=="" %}
-                    <div class="flex flex-col items-center w-full max-w-lg p-6 md:p-8 rounded-xl shadow-2xl bg-[#CCFCCC] text-lg space-y-4">
-                        <div class="bg-white p-6 md:p-10 rounded-xl shadow-xl w-full max-w-md mb-4">
-                            <p class="text-2xl md:text-3xl font-bold text-red-600 text-center mb-2">Error Occured</p>
-                            <p class="text-2xl md:text-2xl font-bold text-red-600 mb-2">Unexpected Form Submission</p>
-                            <div class="text-left">
-                                <p>Your form was submitted due to a page refresh. Please go back and submit the form again.</p>
-                            </div>
-                            <form action="/" class="mt-4">
-                                <button type="submit"
-                                    class="bg-blue-600 hover:bg-cyan-700 text-white w-full rounded-xl shadow-lg p-3 md:p-4 text-lg md:text-xl transition-all">
-                                    Back to Form
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                {% else %}
-                    <div class="flex flex-col items-center w-full max-w-lg p-6 md:p-8 rounded-xl shadow-2xl bg-[#CCFCCC] text-lg space-y-4">
-                        <img src="{{fileurl}}" alt="Uploaded Image"
-                            class="rounded-xl w-full max-w-xs md:max-w-md h-auto object-cover">
-                        <div class="w-full text-left space-y-2">
-                            <p><span class="font-semibold">Filename:</span> {{inputimagefilename}}</p>
-                            <p><span class="font-semibold">Class Type: {{classtype}}:</span> {{classnum}}</p>
-                            <p><span class="font-semibold">Component ID:</span> {{componentid}}</p>
-                            <p><span class="font-semibold">Phase:</span> {{phase}}</p>
-                            <p class="font-semibold">Description:</p>
-                            <p class="text-gray-700">{{complaint}}</p>
-                        </div>
-                        <div class="w-full flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-4">
-                            <form action="/complaint/confirmed" method="post" class="w-full">
-                                <input name="flag" value="cancelupload" type="hidden">
-                                <button type="submit"
-                                    class="w-full bg-red-600 hover:bg-red-300 text-white font-medium py-3 rounded-xl shadow-md">Cancel</button>
-                            </form>
-                            <form action="/complaint/cancelled" method="post" class="w-full">
-                                <input name="flag" value="uploadconfirmed" type="hidden">
-                                <button type="submit"
-                                    class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-medium py-3 rounded-xl shadow-md">Upload
-                                    Complaint</button>
-                            </form>
-                        </div>
-                    </div>
-                {% endif %}
-            </div>
-        
-        {% elif mode=='confirmed' %}
-            <div class="flex flex-1 justify-center items-center px-4 py-8 bg-[#CCFCCC] shadow-2xl">
-                <div class="bg-white p-6 md:p-10 rounded-xl shadow-xl w-full max-w-md">
-                    <p class="text-2xl md:text-3xl font-bold text-green-600 text-center">Upload Confirmed</p>
-                    <img src="/static/greentick2.jpg" class="w-20 md:w-24 mx-auto my-4">
+        <div class="flex flex-1 justify-center items-center p-6">
+            {% if classtype=="" %}
+            <div
+                class="flex flex-col items-center w-full max-w-lg p-6 md:p-8 rounded-xl shadow-2xl bg-[#CCFCCC] text-lg space-y-4">
+                <div class="bg-white p-6 md:p-10 rounded-xl shadow-xl w-full max-w-md mb-4">
+                    <p class="text-2xl md:text-3xl font-bold text-red-600 text-center mb-2">Error Occured</p>
+                    <p class="text-2xl md:text-2xl font-bold text-red-600 mb-2">Unexpected Form Submission</p>
                     <div class="text-left">
-                        <p class="text-lg md:text-lg text-gray-700">Complaint upload successful. Your request has been
-                            recorded.</p>
+                        <p>Your form was submitted due to a page refresh. Please go back and submit the form again.</p>
                     </div>
                     <form action="/" class="mt-4">
                         <button type="submit"
@@ -94,24 +50,72 @@
                     </form>
                 </div>
             </div>
-        
+            {% else %}
+            <div
+                class="flex flex-col items-center w-full max-w-lg p-6 md:p-8 rounded-xl shadow-2xl bg-[#CCFCCC] text-lg space-y-4">
+                <img src="{{fileurl}}" alt="Uploaded Image"
+                    class="rounded-xl w-full max-w-xs md:max-w-md h-auto object-cover">
+                <div class="w-full text-left space-y-2">
+                    <p><span class="font-semibold">Filename:</span> {{inputimagefilename}}</p>
+                    <p><span class="font-semibold">Class Type: {{classtype}}:</span> {{classnum}}</p>
+                    <p><span class="font-semibold">Component ID:</span> {{componentid}}</p>
+                    <p><span class="font-semibold">Phase:</span> {{phase}}</p>
+                    <p class="font-semibold">Description:</p>
+                    <p class="text-gray-700">{{complaint}}</p>
+                </div>
+                <div class="w-full flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-4">
+                    <form action="/complaint/confirmed" method="post" class="w-full">
+                        <input name="flag" value="cancelupload" type="hidden">
+                        <button type="submit"
+                            class="w-full bg-red-600 hover:bg-red-300 text-white font-medium py-3 rounded-xl shadow-md">Cancel</button>
+                    </form>
+                    <form action="/complaint/cancelled" method="post" class="w-full">
+                        <input name="flag" value="uploadconfirmed" type="hidden">
+                        <button type="submit"
+                            class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-medium py-3 rounded-xl shadow-md">Upload
+                            Complaint</button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        {% elif mode=='confirmed' %}
+        <div class="flex flex-1 justify-center items-center px-4 py-8 bg-[#CCFCCC] shadow-2xl">
+            <div class="bg-white p-6 md:p-10 rounded-xl shadow-xl w-full max-w-md">
+                <p class="text-2xl md:text-3xl font-bold text-green-600 text-center">Upload Confirmed</p>
+                <img src="/static/greentick2.jpg" class="w-20 md:w-24 mx-auto my-4">
+                <div class="text-left">
+                    <p class="text-lg md:text-lg text-gray-700">Complaint upload successful. Your request has been
+                        recorded.</p>
+                </div>
+                <form action="/" class="mt-4">
+                    <button type="submit"
+                        class="bg-blue-600 hover:bg-cyan-700 text-white w-full rounded-xl shadow-lg p-3 md:p-4 text-lg md:text-xl transition-all">
+                        Back to Form
+                    </button>
+                </form>
+            </div>
+        </div>
+
         {% elif mode=='cancelled' %}
-            <div class="flex flex-1 justify-center items-center px-4 py-8 bg-[#CCFCCC]">
-                <div class="bg-white p-6 md:p-10 rounded-xl shadow-xl w-full max-w-md">
-                    <p class="text-2xl md:text-3xl text-red-600 font-semibold text-center">Upload Cancelled</p>
-                    <div class="text-justify">
-                        <p class="text-lg md:text-xl text-gray-700 mt-2">The complaint request was cancelled. If an error
-                            was made in the inputs, try submitting the form again.</p>
-                    </div>
-                    <form action="/" class="mt-4">
-                        <button type="submit"
-                            class="bg-blue-600 hover:bg-cyan-700 text-white w-full rounded-xl shadow-lg p-3 md:p-4 text-lg md:text-xl transition-all">
-                            Back to Form
-                        </button>
-                    </form>
+        <div class="flex flex-1 justify-center items-center px-4 py-8 bg-[#CCFCCC]">
+            <div class="bg-white p-6 md:p-10 rounded-xl shadow-xl w-full max-w-md">
+                <p class="text-2xl md:text-3xl text-red-600 font-semibold text-center">Upload Cancelled</p>
+                <div class="text-justify">
+                    <p class="text-lg md:text-xl text-gray-700 mt-2">The complaint request was cancelled. If an error
+                        was made in the inputs, try submitting the form again.</p>
                 </div>
+                <form action="/" class="mt-4">
+                    <button type="submit"
+                        class="bg-blue-600 hover:bg-cyan-700 text-white w-full rounded-xl shadow-lg p-3 md:p-4 text-lg md:text-xl transition-all">
+                        Back to Form
+                    </button>
+                </form>
             </div>
+        </div>
         {% endif %}
     </div>
 </body>
+
 </html>

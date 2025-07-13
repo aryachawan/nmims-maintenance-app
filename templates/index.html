@@ -10,6 +10,7 @@
     <script src="https://kit.fontawesome.com/81b8b08bb1.js" crossorigin="anonymous"></script>
     <link href="https://fonts.googleapis.com/css2?family=Libre Franklin:wght@100;200;300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='logo.jpg') }}">
 </head>
 
 <style>
@@ -60,7 +61,7 @@
                     {% endfor %}
                 </datalist>
                 <input type="text" name="classnum" id="classnum" placeholder="Room Number"
-                    class="p-3 rounded-lg bg-white w-full" required>
+                    class="p-3 rounded-lg bg-white w-full" required >
             </div>
             <input type="text" name="componentid" id="componentid" placeholder="Component ID" class="p-3 rounded-lg w-full"
                 required>
